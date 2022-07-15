@@ -1,0 +1,6 @@
+[submodule "harmony-web"]
+	path = harmony-web
+	url = https://github.com/risenfromashes/harmony-web
+[submodule "harmony-http"]
+	path = harmony-http
+	url = https://github.com/risenfromashes/harmony-http
