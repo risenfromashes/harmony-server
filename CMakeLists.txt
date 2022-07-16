@@ -4,8 +4,9 @@ project(harmony-server)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# -fsanitize=address
-if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "-fno-exceptions -fsanitize=address")
 else()
   set(CMAKE_CXX_FLAGS "-fno-exceptions")

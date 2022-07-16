@@ -1,14 +1,14 @@
-#include "server.h"
-
+#include "harmony/http2.h"
 
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
 int main(int argc, char **argv) {
-  int threads = 24;
-  double timeout = 60.0;
+  int threads = std::thread::hardware_concurrency();
+  double timeout = 0.0;
   const char *port = "5000";
   for (int i = 1; i < argc; i++) {
     std::string_view arg = argv[i];
@@ -27,7 +27,12 @@ int main(int argc, char **argv) {
   std::cout << "Server starting with " << threads << " threads and " << timeout
             << " seconds timeout on port " << port << std::endl;
 
-  Server server(threads);
-  server.serve_static_files("../static");
-  server.listen(port, timeout);
+  hm::Server server({.num_threads = threads,
+                     .port = port,
+                     .dhparam_file = "../harmony-http/certs/dhparam.pem",
+                     .cert_file = "../harmony-http/certs/cert.pem",
+                     .key_file = "../harmony-http/certs/key.pem"});
+
+  server.serve_static_files("../harmony-web/dist/");
+  server.listen(timeout);
 }
