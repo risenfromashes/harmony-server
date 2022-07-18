@@ -30,8 +30,8 @@ int main(int argc, char **argv) {
   hm::Server server({.num_threads = threads,
                      .port = port,
                      .dhparam_file = "../harmony-http/certs/dhparam.pem",
-                     .cert_file = "../harmony-http/certs/cert.pem",
-                     .key_file = "../harmony-http/certs/key.pem"});
+                     .cert_file = "../certs/cert.pem",
+                     .key_file = "../certs/key.pem"});
 
   server.serve_static_files("../harmony-web/dist/");
   server.listen(timeout);
