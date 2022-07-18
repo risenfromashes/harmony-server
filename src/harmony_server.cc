@@ -9,7 +9,8 @@
 int main(int argc, char **argv) {
   int threads = std::thread::hardware_concurrency();
   double timeout = 0.0;
-  const char *port = "5000";
+  const char *port = "443";
+
   for (int i = 1; i < argc; i++) {
     std::string_view arg = argv[i];
     if (arg == "--threads" && (i + 1) < argc) {
