@@ -9,7 +9,11 @@
 int main(int argc, char **argv) {
   int threads = std::thread::hardware_concurrency();
   double timeout = 0.0;
+#ifndef NDEBUG
   const char *port = "5000";
+#else
+  const char *port = "443";
+#endif
 
   for (int i = 1; i < argc; i++) {
     std::string_view arg = argv[i];
