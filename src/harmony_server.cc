@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
   int threads = std::thread::hardware_concurrency();
   double timeout = 0.0;
-  const char *port = "443";
+  const char *port = "5000";
 
   for (int i = 1; i < argc; i++) {
     std::string_view arg = argv[i];
@@ -35,5 +35,6 @@ int main(int argc, char **argv) {
                      .key_file = "../certs/key.pem"});
 
   server.serve_static_files("../harmony-web/dist/");
+  server.connect_database("postgresql:///testdb1");
   server.listen(timeout);
 }
