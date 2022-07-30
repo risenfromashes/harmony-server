@@ -40,5 +40,8 @@ int main(int argc, char **argv) {
 
   server.serve_static_files("../harmony-web/dist/");
   server.connect_database("postgresql:///testdb1");
+
+  server.get("/", [](auto *req, auto *res) { res->send_file("index.html"); });
+
   server.listen(timeout);
 }
