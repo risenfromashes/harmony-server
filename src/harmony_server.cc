@@ -41,7 +41,20 @@ int main(int argc, char **argv) {
   server.serve_static_files("../harmony-web/dist/");
   server.connect_database("postgresql:///testdb1");
 
-  server.get("/", [](auto *req, auto *res) { res->send_file("index.html"); });
+  server.get("/", [](auto *req, auto *res) { res->send_file("/index.html"); });
+
+  server.get("/users",
+             [](hm::HttpRequest *req, hm::HttpResponse *res) -> hm::Task<> {
+               auto db = res->get_db_connection();
+               auto users = co_await db.query("SELECT * FROM users;");
+               if (users.is_error()) {
+                 res->set_status("404");
+                 res->send_html("<html> Failed to select users; " +
+                                std::string(users.error_message()) + "</html>");
+                 co_return;
+               }
+               res->send_json(users.to_json());
+             });
 
   server.listen(timeout);
 }
