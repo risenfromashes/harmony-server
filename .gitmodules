@@ -4,3 +4,6 @@
 [submodule "harmony-http"]
 	path = harmony-http
 	url = https://github.com/risenfromashes/harmony-http
+[submodule "harmony-data"]
+	path = harmony-data
+	url = https://github.com/Sadat-Hossain-01/harmony-data

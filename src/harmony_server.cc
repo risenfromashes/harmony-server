@@ -9,11 +9,11 @@
 int main(int argc, char **argv) {
   int threads = std::thread::hardware_concurrency();
   double timeout = 0.0;
-#ifndef NDEBUG
+  // #ifndef NDEBUG
   const char *port = "5000";
-#else
-  const char *port = "443";
-#endif
+  // #else
+  //   const char *port = "443";
+  // #endif
 
   for (int i = 1; i < argc; i++) {
     std::string_view arg = argv[i];
@@ -39,7 +39,8 @@ int main(int argc, char **argv) {
                      .key_file = "../certs/key.pem"});
 
   server.serve_static_files("../harmony-web/dist/");
-  server.connect_database("postgresql:///testdb1");
+  server.connect_database("postgresql:///testdb2");
+  server.set_query_location("../harmony-data/prepared/");
 
   server.get("/", [](auto *req, auto *res) { res->send_file("/index.html"); });
 
@@ -55,6 +56,20 @@ int main(int argc, char **argv) {
                }
                res->send_json(users.to_json());
              });
+
+  server.get(
+      "/login", [](hm::HttpRequest *req, hm::HttpResponse *res) -> hm::Task<> {
+        auto db = res->get_db_connection();
+        auto users =
+            co_await db.query_prepared("login_user", "risenfromashes", "1234");
+        if (users.is_error()) {
+          res->set_status("404");
+          res->send_html("<html> Failed to select users; " +
+                         std::string(users.error_message()) + "</html>");
+          co_return;
+        }
+        res->send_json(users.to_json());
+      });
 
   server.listen(timeout);
 }

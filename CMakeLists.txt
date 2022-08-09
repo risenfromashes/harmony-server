@@ -14,6 +14,11 @@ add_subdirectory(harmony-http/)
 
 add_executable(harmony_server 
   src/harmony_server.cc
+  src/auth.h
+  src/auth.cc
+  src/routes.h
+  src/routes.cc
+  src/data/login.h
 )
 
 target_link_libraries(harmony_server harmony_http)
