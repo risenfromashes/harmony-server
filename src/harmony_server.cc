@@ -6,6 +6,8 @@
 #include <iostream>
 #include <thread>
 
+#include "routes.h"
+
 int main(int argc, char **argv) {
   int threads = std::thread::hardware_concurrency();
   double timeout = 0.0;
@@ -44,32 +46,8 @@ int main(int argc, char **argv) {
 
   server.get("/", [](auto *req, auto *res) { res->send_file("/index.html"); });
 
-  server.get("/users",
-             [](hm::HttpRequest *req, hm::HttpResponse *res) -> hm::Task<> {
-               auto db = res->get_db_connection();
-               auto users = co_await db.query("SELECT * FROM users;");
-               if (users.is_error()) {
-                 res->set_status("404");
-                 res->send_html("<html> Failed to select users; " +
-                                std::string(users.error_message()) + "</html>");
-                 co_return;
-               }
-               res->send_json(users.to_json());
-             });
-
-  server.get(
-      "/login", [](hm::HttpRequest *req, hm::HttpResponse *res) -> hm::Task<> {
-        auto db = res->get_db_connection();
-        auto users =
-            co_await db.query_prepared("login_user", "risenfromashes", "1234");
-        if (users.is_error()) {
-          res->set_status("404");
-          res->send_html("<html> Failed to select users; " +
-                         std::string(users.error_message()) + "</html>");
-          co_return;
-        }
-        res->send_json(users.to_json());
-      });
+  server.post("/login", login_user);
+  server.get("/feed", get_feed);
 
   server.listen(timeout);
 }
