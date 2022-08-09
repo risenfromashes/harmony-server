@@ -10,4 +10,5 @@ hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
                                       std::string_view password);
 
 hm::AwaitableTask<bool> is_authenticated(hm::HttpResponse *response,
-                                         std::string_view sid, int64_t user_id);
+                                         std::string_view sid,
+                                         std::string_view user_id);

@@ -18,7 +18,9 @@ add_executable(harmony_server
   src/auth.cc
   src/routes.h
   src/routes.cc
+  src/data/error.h
   src/data/login.h
+  src/data/register.h
 )
 
 target_link_libraries(harmony_server harmony_http)

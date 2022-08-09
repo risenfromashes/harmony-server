@@ -19,26 +19,26 @@ hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
       response->set_status("200");
       auto sid_str = "sid=" + sid;
       response->set_header("set-cookie", sid_str);
-      response->send_json(LoginData{.success = true, .id = user_id}.to_json());
+      response->send_json(Login{.success = true, .id = user_id}.to_json());
       co_return;
     } else {
       response->set_status("400");
       response->send_json(
-          LoginData{.success = false, .reason = res.error_message()}.to_json());
+          Login{.success = false, .reason = res.error_message()}.to_json());
     }
   }
   // response.s
   response->set_status("400");
-  response->send_json(
-      LoginData{.success = false,
-                .reason = res.is_error() ? res.error_message()
-                                         : "Username or password incorrect"}
-          .to_json());
+  response->send_json(Login{.success = false,
+                            .reason = res.is_error()
+                                          ? res.error_message()
+                                          : "Username or password incorrect"}
+                          .to_json());
 }
 
 hm::AwaitableTask<bool> is_authenticated(hm::HttpResponse *response,
                                          std::string_view sid,
-                                         int64_t user_id) {
+                                         std::string_view user_id) {
   std::cout << "sending query" << std::endl;
   auto db = response->get_db_connection();
   auto res = co_await db.query_prepared("check_session", sid, user_id);

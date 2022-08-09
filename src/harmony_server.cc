@@ -45,8 +45,11 @@ int main(int argc, char **argv) {
   server.set_query_location("../harmony-data/prepared/");
 
   server.get("/", [](auto *req, auto *res) { res->send_file("/index.html"); });
+  server.get("/assets/*", [](auto *req, auto *res) { res->send_file(); });
 
   server.post("/login", login_user);
+  server.post("/register", register_user);
+
   server.get("/feed", get_feed);
 
   server.listen(timeout);

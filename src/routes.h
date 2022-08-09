@@ -8,3 +8,4 @@
 
 hm::Task<> login_user(hm::HttpRequest *req, hm::HttpResponse *res);
 hm::Task<> get_feed(hm::HttpRequest *req, hm::HttpResponse *res);
+hm::Task<> register_user(hm::HttpRequest *req, hm::HttpResponse *res);
