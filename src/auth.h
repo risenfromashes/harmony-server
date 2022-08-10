@@ -12,3 +12,10 @@ hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
 hm::AwaitableTask<bool> is_authenticated(hm::HttpResponse *response,
                                          std::string_view sid,
                                          std::string_view user_id);
+
+hm::AwaitableTask<bool> is_authenticated(hm::HttpRequest *req,
+                                         hm::HttpResponse *res,
+                                         std::string_view user_id);
+
+hm::AwaitableTask<bool> is_authenticated(hm::HttpRequest *req,
+                                         hm::HttpResponse *res);

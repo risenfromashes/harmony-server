@@ -21,6 +21,7 @@ add_executable(harmony_server
   src/data/error.h
   src/data/login.h
   src/data/register.h
+  src/data/user.h
 )
 
 target_link_libraries(harmony_server harmony_http)

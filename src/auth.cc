@@ -1,4 +1,5 @@
 #include "auth.h"
+#include "data/user.h"
 
 hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
                                       std::string_view name,
@@ -43,4 +44,32 @@ hm::AwaitableTask<bool> is_authenticated(hm::HttpResponse *response,
   auto db = response->get_db_connection();
   auto res = co_await db.query_prepared("check_session", sid, user_id);
   co_return res.exists();
+}
+
+hm::AwaitableTask<bool> is_authenticated(hm::HttpRequest *req,
+                                         hm::HttpResponse *res,
+                                         std::string_view user_id) {
+  auto sid = req->get_cookie("sid");
+
+  if (sid.has_value()) {
+    bool authenticated = co_await is_authenticated(res, sid.value(), user_id);
+    co_return authenticated;
+  }
+
+  co_return false;
+}
+
+hm::AwaitableTask<bool> is_authenticated(hm::HttpRequest *req,
+                                         hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto uid = User::from_json(body);
+  auto sid = req->get_cookie("sid");
+
+  if (uid.has_value() && sid.has_value()) {
+    bool authenticated =
+        co_await is_authenticated(res, sid.value(), uid.value().user_id);
+    co_return authenticated;
+  }
+
+  co_return false;
 }

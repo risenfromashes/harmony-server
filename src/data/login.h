@@ -18,4 +18,6 @@ struct Login {
     }
     return writer.string();
   }
+
+  operator std::string() { return to_json(); }
 };
