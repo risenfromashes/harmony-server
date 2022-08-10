@@ -7,7 +7,6 @@ hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
   auto db = response->get_db_connection();
   // first check if the credentials are correct
   auto res = co_await db.query_prepared("login_user", name, password);
-  std::optional<std::string> error;
 
   if (!res.is_error() && res.num_rows()) {
     assert(res["user_id"].has_value());

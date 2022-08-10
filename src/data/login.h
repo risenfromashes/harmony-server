@@ -16,7 +16,11 @@ struct Login {
       root["reason"] = reason;
       root["id"] = id;
     }
-    return writer.string();
+    auto ret = writer.string();
+    std::cout << "=======" << std::endl;
+    std::cout << ret << std::endl;
+    std::cout << "=======" << std::endl;
+    return ret;
   }
 
   operator std::string() { return to_json(); }

@@ -41,7 +41,8 @@ int main(int argc, char **argv) {
                      .key_file = "../certs/key.pem"});
 
   server.serve_static_files("../harmony-web/dist/");
-  server.connect_database("postgresql:///testdb2");
+  server.connect_database(
+      "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable");
   server.set_query_location("../harmony-data/prepared/");
 
   server.get("/", [](auto *req, auto *res) { res->send_file("/index.html"); });
