@@ -9,7 +9,10 @@ hm::Task<> login_user(hm::HttpRequest *req, hm::HttpResponse *res) {
   auto body = co_await req->json();
   auto name = body["user_name"];
   auto password = body["password"];
+  std::cout << "user: " << name << std::endl;
+  std::cout << "password: " << password << std::endl;
   if (name.error() || password.error()) {
+    std::cout << "error" << std::endl;
     res->set_status("400");
     res->send_json(
         Login{.success = false, .reason = "Invalid Request"}.to_json());
@@ -99,6 +102,30 @@ hm::Task<> get_posts(hm::HttpRequest *req, hm::HttpResponse *res) {
 
 hm::Task<> add_post(hm::HttpRequest *req, hm::HttpResponse *res) {
   // TODO: MAJOR BUG, WHAT IF BODY IS ALREADY RECEIVED?
+  auto body = co_await req->json();
+  auto post = Post::from_json(body);
+
+  if (post && co_await is_authenticated(req, res, post->user_id)) {
+    std::cout << "Got text: " << post->text << std::endl;
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_prepared("add_post", post->user_id,
+                                         post->group_id, post->text);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json("{}");
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res) {
   auto body = co_await req->json();
   auto post = Post::from_json(body);
 
