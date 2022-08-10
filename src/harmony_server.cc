@@ -9,6 +9,7 @@
 #include "routes.h"
 
 int main(int argc, char **argv) {
+  bool connect_remote_db = true;
   int threads = std::thread::hardware_concurrency();
   double timeout = 0.0;
   // #ifndef NDEBUG
@@ -41,7 +42,14 @@ int main(int argc, char **argv) {
                      .key_file = "../certs/key.pem"});
 
   server.serve_static_files("../harmony-web/dist/");
-  server.connect_database("postgresql:///testdb2");
+
+  if (connect_remote_db) {
+    server.connect_database(
+        "postgresql://postgres:postgres@localhost:5432/testdb?sslmode=disable");
+  } else {
+    server.connect_database("postgresql:///testdb3");
+  }
+
   server.set_query_location("../harmony-data/prepared/");
 
   server.get("/", [](auto *req, auto *res) { res->send_file("/index.html"); });

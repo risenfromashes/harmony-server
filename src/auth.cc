@@ -21,12 +21,12 @@ hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
       auto sid_str = "sid=" + sid;
       response->set_header("set-cookie", sid_str);
       response->send_json(Login{.success = true, .id = user_id}.to_json());
-      co_return;
     } else {
       response->set_status("400");
       response->send_json(
           Login{.success = false, .reason = res.error_message()}.to_json());
     }
+    co_return;
   }
   // response.s
   response->set_status("400");
