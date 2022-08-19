@@ -68,7 +68,7 @@ hm::Task<> get_groups(hm::HttpRequest *req, hm::HttpResponse *res) {
 
     if (!rt.is_error()) {
       res->set_status("200");
-      res->send_json(rt.to_json());
+      res->send_json(std::move(rt));
     } else {
       res->set_status("400");
       res->send_json(Error{.reason = rt.error_message()});
@@ -100,8 +100,62 @@ hm::Task<> get_posts(hm::HttpRequest *req, hm::HttpResponse *res) {
   }
 }
 
+hm::Task<> get_group_messages(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  auto gid = req->get_param("group_id");
+  auto sid = req->get_param("subject_id");
+
+  if (!uid || !gid || !sid) {
+    res->set_status("400");
+    res->send_json(Error{.reason = "Invalid request"});
+    co_return;
+  }
+
+  if (co_await is_authenticated(req, res, uid.value())) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_prepared("get_group_messages", uid.value(),
+                                         gid.value(), sid.value());
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
 hm::Task<> add_post(hm::HttpRequest *req, hm::HttpResponse *res) {
   // TODO: MAJOR BUG, WHAT IF BODY IS ALREADY RECEIVED?
+  auto body = co_await req->json();
+  auto post = Post::from_json(body);
+
+  if (post && co_await is_authenticated(req, res, post->user_id)) {
+    std::cout << "Got text: " << post->text << std::endl;
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_prepared("add_post", post->user_id,
+                                         post->group_id, post->text);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json("{}");
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res) {
   auto body = co_await req->json();
   auto post = Post::from_json(body);
 
@@ -146,5 +200,18 @@ hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res) {
   } else {
     res->set_status("401");
     res->send_json("{}");
+  }
+}
+
+hm::Task<> create_event_source(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  if (uid && co_await is_authenticated(req, res, uid.value())) {
+    auto ev = hm::EventSource::create(req, res);
+    auto db = res->get_db_connection();
+    auto channels = co_await db.query_params(
+        "SELECT * FROM register_user_events($1::INT4)", uid.value());
+    for (std::string_view channel : channels) {
+      ev.suscribe(channel);
+    }
   }
 }

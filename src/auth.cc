@@ -39,7 +39,6 @@ hm::AwaitableTask<> authenticate_user(hm::HttpResponse *response,
 hm::AwaitableTask<bool> is_authenticated(hm::HttpResponse *response,
                                          std::string_view sid,
                                          std::string_view user_id) {
-  std::cout << "sending query" << std::endl;
   auto db = response->get_db_connection();
   auto res = co_await db.query_prepared("check_session", sid, user_id);
   co_return res.exists();

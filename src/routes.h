@@ -16,6 +16,12 @@ hm::Task<> get_groups(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> get_posts(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> get_group_messages(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> add_post(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> create_event_source(hm::HttpRequest *req, hm::HttpResponse *res);
