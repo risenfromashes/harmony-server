@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   server.post("/login", login_user);
   server.post("/register", register_user);
   server.post("/post", add_post);
-  server.post("/group-message", add_post);
+  server.post("/group-message", add_group_message);
 
   server.get("/groups/{user_id}", get_groups);
   server.get("/posts/{user_id}", get_posts);
