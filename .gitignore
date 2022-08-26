@@ -2,9 +2,5 @@ build/
 .cache/
 certs/
 out/
-<<<<<<< HEAD
 uploads/
-=======
-upload/
->>>>>>> fbe5f5cf72c613caa6eb70e9ba61898a5c49f3a5
 config.json
