@@ -9,11 +9,15 @@ int main(int argc, char **argv) {
 
   server.get("/assets/*", [](auto *req, auto *res) { res->send_file(); });
 
+  server.get("/image/{name}", send_image);
   server.post("/login", login_user);
   server.post("/register", register_user);
+  server.post("/update-info", update_user_info);
   server.post("/post", add_post);
   server.post("/group-message", add_group_message);
+  server.post("/upload-image/{user_id}", add_image);
 
+  server.get("/user-info/{user_id}", get_user_info);
   server.get("/groups/{user_id}", get_groups);
   server.get("/posts/{user_id}", get_posts);
   server.get("/feed", get_feed);
