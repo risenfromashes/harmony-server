@@ -7,6 +7,7 @@
 #include "data/user.h"
 
 #include <cstdio>
+#include <fstream>
 
 hm::Task<> login_user(hm::HttpRequest *req, hm::HttpResponse *res) {
   auto body = co_await req->json();
@@ -221,5 +222,50 @@ hm::Task<> create_event_source(hm::HttpRequest *req, hm::HttpResponse *res) {
     for (std::string_view channel : channels) {
       ev.suscribe(channel);
     }
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
   }
+}
+
+hm::Task<> add_image(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  std::cerr << uid.value() << std::endl;
+  if (uid && co_await is_authenticated(req, res, uid.value())) {
+    auto uuid = hm::util::generate_uuid();
+
+    std::string_view ext = "dat";
+    auto type = req->get_header("content-type");
+    if (type) {
+      ext = hm::util::get_extension(type.value());
+    }
+
+    std::ofstream out("../uploads/" + uuids::to_string(uuid) + "." +
+                      std::string(ext));
+    for (;;) {
+      auto data = co_await req->data();
+      if (data.empty()) {
+        break;
+      }
+      out.write(data.data(), data.length());
+    }
+    out.close();
+    res->set_status("200");
+    res->send_json("{}");
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> send_image(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto name = req->get_param("name");
+  if (name) {
+    std::string link = "../uploads/" + std::string(name.value());
+    res->send_file(link, false, false, false);
+  } else {
+    res->set_status("400");
+    res->send_json("{}");
+  }
+  co_return;
 }
