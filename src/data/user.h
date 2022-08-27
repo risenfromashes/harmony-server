@@ -23,6 +23,7 @@ struct User {
       std::cerr << "json null error" << std::endl;
       return std::nullopt;
     }
+
     ret.user_id = user_id;
     return ret;
   }

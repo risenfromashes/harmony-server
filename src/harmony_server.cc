@@ -16,7 +16,9 @@ int main(int argc, char **argv) {
   server.post("/post", add_post);
   server.post("/group-message", add_group_message);
   server.post("/upload-image/{user_id}", add_image);
+  server.post("/add-group", add_group);
 
+  server.get("/users/{user_id}", get_users);
   server.get("/user-info/{user_id}", get_user_info);
   server.get("/groups/{user_id}", get_groups);
   server.get("/posts/{user_id}", get_posts);

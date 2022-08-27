@@ -2,6 +2,7 @@
 
 #include "auth.h"
 #include "data/error.h"
+#include "data/group.h"
 #include "data/groupmessage.h"
 #include "data/post.h"
 #include "data/register.h"
@@ -102,6 +103,26 @@ hm::Task<> update_user_info(hm::HttpRequest *req, hm::HttpResponse *res) {
       res->set_status("400");
       res->send_json(Error{.reason = rt.error_message()});
     }
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> get_users(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  if (uid && co_await is_authenticated(req, res, uid.value())) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_prepared("get_users");
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
   } else {
     res->set_status("401");
     res->send_json("{}");
@@ -219,6 +240,35 @@ hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res) {
     auto rt = co_await db.query_prepared("add_group_message", msg->user_id,
                                          msg->group_id, msg->subject_id,
                                          msg->content);
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> add_group(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto g = Group::from_json(body);
+
+  if (!g) {
+    res->set_status("400");
+    res->send_json(Error{.reason = "Invalid request"});
+    co_return;
+  }
+
+  if (co_await is_authenticated(req, res, g->creator_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT create_group($1::int, $2::varchar, $3::text, $4::int[])",
+        g->creator_id, g->name, g->intro, g->members);
+
     if (!rt.is_error()) {
       res->set_status("200");
       res->send_json(std::move(rt));
