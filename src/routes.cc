@@ -151,13 +151,19 @@ hm::Task<> get_groups(hm::HttpRequest *req, hm::HttpResponse *res) {
 
 hm::Task<> get_posts(hm::HttpRequest *req, hm::HttpResponse *res) {
   auto uid = req->get_param("user_id");
+  auto gid = req->get_param("group_id");
+  auto sid = req->get_param("subject_id");
+  auto pid = req->get_param("parent_id");
   if (uid && co_await is_authenticated(req, res, uid.value())) {
+
     auto db = res->get_db_connection();
-    auto rt = co_await db.query_prepared("get_posts", uid.value());
+    auto rt = co_await db.query_params(
+        "SELECT get_posts($1::INT, $2::INT, $3::INT, $4::INT);", uid.value(),
+        gid.value(), sid.value(), pid.value());
 
     if (!rt.is_error()) {
       res->set_status("200");
-      res->send_json(rt.to_json());
+      res->send_json(std::move(rt));
     } else {
       res->set_status("400");
       res->send_json(Error{.reason = rt.error_message()});
@@ -200,19 +206,20 @@ hm::Task<> get_group_messages(hm::HttpRequest *req, hm::HttpResponse *res) {
 }
 
 hm::Task<> add_post(hm::HttpRequest *req, hm::HttpResponse *res) {
-  // TODO: MAJOR BUG, WHAT IF BODY IS ALREADY RECEIVED?
   auto body = co_await req->json();
   auto post = Post::from_json(body);
 
-  if (post && co_await is_authenticated(req, res, post->user_id)) {
-    std::cout << "Got text: " << post->text << std::endl;
+  if (post && co_await is_authenticated(req, res, post->poster_id)) {
     auto db = res->get_db_connection();
-    auto rt = co_await db.query_prepared("add_post", post->user_id,
-                                         post->group_id, post->text);
+    auto rt = co_await db.query_params(
+        "SELECT add_post($1::INT, $2::INT, $3::INT, $4::INT,"
+        "$5::VARCHAR, $6::TEXT);",
+        post->poster_id, post->group_id, post->subject_id, post->parent_post_id,
+        post->type, post->content);
 
     if (!rt.is_error()) {
       res->set_status("200");
-      res->send_json("{}");
+      res->send_json(std::move(rt));
     } else {
       res->set_status("400");
       res->send_json(Error{.reason = rt.error_message()});
@@ -237,9 +244,9 @@ hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res) {
   if (co_await is_authenticated(req, res, msg->user_id)) {
     std::cout << "Got text: " << msg->content << std::endl;
     auto db = res->get_db_connection();
-    auto rt = co_await db.query_prepared("add_group_message", msg->user_id,
-                                         msg->group_id, msg->subject_id,
-                                         msg->content);
+    auto rt = co_await db.query_params(
+        "SELECT add_group_message($1::int, $2::int, $3::int, $4::text)",
+        msg->user_id, msg->group_id, msg->subject_id, msg->content);
     if (!rt.is_error()) {
       res->set_status("200");
       res->send_json(std::move(rt));
@@ -276,30 +283,6 @@ hm::Task<> add_group(hm::HttpRequest *req, hm::HttpResponse *res) {
       res->set_status("400");
       res->send_json(Error{.reason = rt.error_message()});
     }
-  } else {
-    res->set_status("401");
-    res->send_json("{}");
-  }
-}
-
-hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res) {
-  auto body = co_await req->json();
-  auto post = Post::from_json(body);
-
-  if (post && co_await is_authenticated(req, res, post->user_id)) {
-    std::cout << "Got text: " << post->text << std::endl;
-    auto db = res->get_db_connection();
-    auto rt = co_await db.query_prepared("add_post", post->user_id,
-                                         post->group_id, post->text);
-
-    if (!rt.is_error()) {
-      res->set_status("200");
-      res->send_json("{}");
-    } else {
-      res->set_status("400");
-      res->send_json(Error{.reason = rt.error_message()});
-    }
-
   } else {
     res->set_status("401");
     res->send_json("{}");

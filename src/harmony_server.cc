@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   server.get("/users/{user_id}", get_users);
   server.get("/user-info/{user_id}", get_user_info);
   server.get("/groups/{user_id}", get_groups);
-  server.get("/posts/{user_id}", get_posts);
+  server.get("/posts/{user_id}/{group_id}/{subject_id}/{parent_id}", get_posts);
   server.get("/feed", get_feed);
   server.get("/group-messages/{user_id}/{group_id}/{subject_id}",
              get_group_messages);

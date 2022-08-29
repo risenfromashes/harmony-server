@@ -1,41 +1,43 @@
 #pragma once
 
+#include "check_error.h"
 #include <iostream>
 #include <simdjson.h>
 
 struct Post {
   static std::optional<Post> from_json(simdjson::ondemand::document &doc) {
     Post ret;
-    auto user_id = doc["user_id"];
+    auto poster_id = doc["poster_id"];
     auto group_id = doc["group_id"];
-    auto text = doc["text"];
+    auto subject_id = doc["subject_id"];
+    auto parent_post_id = doc["parent_post_id"];
+    auto type = doc["type"];
+    auto content = doc["content"];
     // check error
-
-    if (user_id.error() || group_id.error() || text.error()) {
-      std::cerr << "json parsing error" << std::endl;
-      std::cout << user_id.error() << std::endl;
-      std::cout << group_id.error() << std::endl;
-      std::cout << text.error() << std::endl;
-      return std::nullopt;
-    }
-    // check types
-    if (!user_id.is_scalar() || !group_id.is_scalar() || !text.is_scalar()) {
-      std::cerr << "json type error" << std::endl;
+    if (check_error(poster_id, group_id, subject_id, parent_post_id, type,
+                    content)) {
+      std::cerr << "Post json parsing error" << std::endl;
       return std::nullopt;
     }
     // check null
-    if (user_id.is_null() || group_id.is_null()) {
-      std::cerr << "json null error" << std::endl;
+    if (check_null(poster_id, group_id, subject_id)) {
+      std::cerr << "Post json null error" << std::endl;
       return std::nullopt;
     }
 
-    ret.user_id = user_id;
+    ret.poster_id = poster_id;
     ret.group_id = group_id;
-    ret.text = text;
+    ret.subject_id = subject_id;
+    ret.parent_post_id = parent_post_id;
+    ret.type = type;
+    ret.content = content;
     return ret;
   }
 
-  std::string_view user_id;
+  std::string_view poster_id;
   std::string_view group_id;
-  std::string_view text;
+  std::string_view subject_id;
+  std::string_view parent_post_id;
+  std::string_view type;
+  std::string_view content;
 };
