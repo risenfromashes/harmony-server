@@ -26,6 +26,16 @@ hm::Task<> get_group_messages(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_post(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> get_polls(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> add_poll(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> remove_poll(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> update_poll(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> change_vote(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res);

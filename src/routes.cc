@@ -4,10 +4,14 @@
 #include "data/error.h"
 #include "data/group.h"
 #include "data/groupmessage.h"
+#include "data/poll.h"
+#include "data/pollremove.h"
+#include "data/pollupdate.h"
 #include "data/post.h"
 #include "data/register.h"
 #include "data/user.h"
 #include "data/userupdate.h"
+#include "data/votechange.h"
 
 #include <cstdio>
 #include <fstream>
@@ -351,4 +355,122 @@ hm::Task<> send_image(hm::HttpRequest *req, hm::HttpResponse *res) {
     res->send_json("{}");
   }
   co_return;
+}
+
+hm::Task<> add_poll(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto poll = Poll::from_json(body);
+
+  if (poll && co_await is_authenticated(req, res, poll->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT add_poll($1::INT, $2::TEXT, $3::INT, $4::JSON);", poll->user_id,
+        poll->title, poll->group_id, poll->options);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> remove_poll(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto poll = PollRemove::from_json(body);
+
+  if (poll && co_await is_authenticated(req, res, poll->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params("SELECT delete_poll($1::INT, $2::INT);",
+                                       poll->user_id, poll->poll_id);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> update_poll(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto poll = PollUpdate::from_json(body);
+
+  if (poll && co_await is_authenticated(req, res, poll->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT update_poll($1::INT, $2::INT, $3::TEXT, $4::JSON);",
+        poll->user_id, poll->poll_id, poll->title, poll->options);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> change_vote(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto vote = VoteChange::from_json(body);
+
+  if (vote && co_await is_authenticated(req, res, vote->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT change_vote($1::INT, $2::INT, $3::INT, $4::boolean);",
+        vote->user_id, vote->poll_id, vote->option_id, vote->add);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> get_polls(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  auto gid = req->get_param("group_id");
+
+  if (uid && co_await is_authenticated(req, res, uid.value())) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params("SELECT get_polls($1::INT, $2::INT);",
+                                       uid.value(), gid.value());
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
 }
