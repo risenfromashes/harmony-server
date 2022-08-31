@@ -18,6 +18,8 @@ hm::Task<> update_user_info(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> get_users(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> get_members(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> get_groups(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> get_posts(hm::HttpRequest *req, hm::HttpResponse *res);
@@ -36,6 +38,8 @@ hm::Task<> update_poll(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> change_vote(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> update_member(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res);
@@ -43,6 +47,12 @@ hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res);
 hm::Task<> add_group(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_image(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> add_subject(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> remove_subject(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> update_group_info(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> send_image(hm::HttpRequest *req, hm::HttpResponse *res);
 

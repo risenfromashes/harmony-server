@@ -4,11 +4,15 @@
 #include "data/error.h"
 #include "data/group.h"
 #include "data/groupmessage.h"
+#include "data/groupupdate.h"
+#include "data/memberupdate.h"
 #include "data/poll.h"
 #include "data/pollremove.h"
 #include "data/pollupdate.h"
 #include "data/post.h"
 #include "data/register.h"
+#include "data/subject.h"
+#include "data/subjectremove.h"
 #include "data/user.h"
 #include "data/userupdate.h"
 #include "data/votechange.h"
@@ -460,6 +464,127 @@ hm::Task<> get_polls(hm::HttpRequest *req, hm::HttpResponse *res) {
     auto db = res->get_db_connection();
     auto rt = co_await db.query_params("SELECT get_polls($1::INT, $2::INT);",
                                        uid.value(), gid.value());
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> update_group_info(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto grp = GroupUpdate::from_json(body);
+
+  if (grp && co_await is_authenticated(req, res, grp->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT update_group_info($1::INT, $2::INT, $3::VARCHAR, $4::TEXT, "
+        "$5::INT);",
+        grp->user_id, grp->group_id, grp->name, grp->intro, grp->photo_id);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> get_members(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  auto gid = req->get_param("group_id");
+
+  if (uid && co_await is_authenticated(req, res, uid.value())) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params("SELECT get_members($1::INT, $2::INT);",
+                                       uid.value(), gid.value());
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> update_member(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto um = MemberUpdate::from_json(body);
+
+  if (um && co_await is_authenticated(req, res, um->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT update_member($1::INT, $2::INT, $3::INT, $4::BOOLEAN);",
+        um->user_id, um->member_id, um->group_id, um->add);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> add_subject(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto sub = Subject::from_json(body);
+
+  if (sub && co_await is_authenticated(req, res, sub->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT add_subject($1::INT, $2::INT, $3::TEXT);", sub->user_id,
+        sub->group_id, sub->name);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> remove_subject(hm::HttpRequest *req, hm::HttpResponse *res) {
+
+  auto body = co_await req->json();
+  auto sub = SubjectRemove::from_json(body);
+
+  if (sub && co_await is_authenticated(req, res, sub->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT remove_subject($1::INT, $2::INT, $3::INT);", sub->user_id,
+        sub->subject_id, sub->group_id);
 
     if (!rt.is_error()) {
       res->set_status("200");
