@@ -46,6 +46,8 @@ hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_group(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> remove_group(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> add_image(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_subject(hm::HttpRequest *req, hm::HttpResponse *res);

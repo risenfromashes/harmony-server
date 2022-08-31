@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
   server.post("/update-member", update_member);
   server.post("/add-subject", add_subject);
   server.post("/remove-subject", remove_subject);
+  server.post("/remove-group", remove_group);
 
   server.get("/users/{user_id}", get_users);
   server.get("/user-info/{user_id}", get_user_info);

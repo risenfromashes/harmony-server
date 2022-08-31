@@ -4,6 +4,7 @@
 #include "data/error.h"
 #include "data/group.h"
 #include "data/groupmessage.h"
+#include "data/groupremove.h"
 #include "data/groupupdate.h"
 #include "data/memberupdate.h"
 #include "data/poll.h"
@@ -585,6 +586,30 @@ hm::Task<> remove_subject(hm::HttpRequest *req, hm::HttpResponse *res) {
     auto rt = co_await db.query_params(
         "SELECT remove_subject($1::INT, $2::INT, $3::INT);", sub->user_id,
         sub->subject_id, sub->group_id);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> remove_group(hm::HttpRequest *req, hm::HttpResponse *res) {
+
+  auto body = co_await req->json();
+  auto grp = GroupRemove::from_json(body);
+
+  if (grp && co_await is_authenticated(req, res, grp->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params("SELECT delete_group($1::INT, $2::INT);",
+                                       grp->user_id, grp->group_id);
 
     if (!rt.is_error()) {
       res->set_status("200");
