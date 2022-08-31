@@ -42,7 +42,13 @@ hm::Task<> update_member(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_group_message(hm::HttpRequest *req, hm::HttpResponse *res);
 
+hm::Task<> get_events(hm::HttpRequest *req, hm::HttpResponse *res);
+
 hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> update_event(hm::HttpRequest *req, hm::HttpResponse *res);
+
+hm::Task<> remove_event(hm::HttpRequest *req, hm::HttpResponse *res);
 
 hm::Task<> add_group(hm::HttpRequest *req, hm::HttpResponse *res);
 

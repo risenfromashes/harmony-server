@@ -2,6 +2,9 @@
 
 #include "auth.h"
 #include "data/error.h"
+#include "data/event.h"
+#include "data/eventremove.h"
+#include "data/eventupdate.h"
 #include "data/group.h"
 #include "data/groupmessage.h"
 #include "data/groupremove.h"
@@ -610,6 +613,105 @@ hm::Task<> remove_group(hm::HttpRequest *req, hm::HttpResponse *res) {
     auto db = res->get_db_connection();
     auto rt = co_await db.query_params("SELECT delete_group($1::INT, $2::INT);",
                                        grp->user_id, grp->group_id);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> add_event(hm::HttpRequest *req, hm::HttpResponse *res) {
+
+  auto body = co_await req->json();
+  auto event = Event::from_json(body);
+
+  if (event && co_await is_authenticated(req, res, event->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT add_event($1::INT, $2::INT, "
+        "$3::VARCHAR, $4::TEXT, $5::TIMESTAMPTZ);",
+        event->user_id, event->group_id, event->event_title,
+        event->event_description, event->event_time);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> update_event(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto event = EventUpdate::from_json(body);
+
+  if (event && co_await is_authenticated(req, res, event->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params(
+        "SELECT update_event($1::INT, $2::INT, "
+        "$3::VARCHAR, $4::TEXT, $5::TIMESTAMPTZ);",
+        event->user_id, event->event_id, event->event_title,
+        event->event_description, event->event_time);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> remove_event(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto body = co_await req->json();
+  auto event = EventRemove::from_json(body);
+
+  if (event && co_await is_authenticated(req, res, event->user_id)) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params("SELECT delete_event($1::INT, $2::INT);",
+                                       event->user_id, event->event_id);
+
+    if (!rt.is_error()) {
+      res->set_status("200");
+      res->send_json(std::move(rt));
+    } else {
+      res->set_status("400");
+      res->send_json(Error{.reason = rt.error_message()});
+    }
+
+  } else {
+    res->set_status("401");
+    res->send_json("{}");
+  }
+}
+
+hm::Task<> get_events(hm::HttpRequest *req, hm::HttpResponse *res) {
+  auto uid = req->get_param("user_id");
+  auto gid = req->get_param("group_id");
+
+  if (uid && co_await is_authenticated(req, res, uid.value())) {
+    auto db = res->get_db_connection();
+    auto rt = co_await db.query_params("SELECT get_events($1::INT, $2::INT);",
+                                       uid.value(), gid.value());
 
     if (!rt.is_error()) {
       res->set_status("200");
